@@ -5,6 +5,7 @@ import com.manoj.trip.dto.AuthResponse;
 import com.manoj.trip.dto.RegisterRequest;
 import com.manoj.trip.exception.UserAlreadyExistsException;
 import com.manoj.trip.model.User;
+import com.manoj.trip.model.UserProfile;
 import com.manoj.trip.repository.UserRepository;
 import com.manoj.trip.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,15 @@ public class AuthService {
         User user = new User();
         user.setUsername(input.getUsername());
         user.setPassword(passwordEncoder.encode(input.getPassword()));
+        UserProfile profile = new UserProfile();
+        if(input.getCity()!=null){
+            profile.setCity(input.getCity());
+        }
+        if(input.getFullName()!=null){
+            profile.setFullName(input.getFullName());
+        }
+        profile.setZipCode(input.getZipCode());
+        user.setProfile(profile);
         userRepository.save(user);
 
         return "User registered successfully";
