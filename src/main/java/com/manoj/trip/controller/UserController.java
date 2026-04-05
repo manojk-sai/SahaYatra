@@ -1,6 +1,6 @@
 package com.manoj.trip.controller;
 
-import com.manoj.trip.dto.UpdateProfileRequest;
+import com.manoj.trip.dto.request.UpdateProfileRequest;
 import com.manoj.trip.model.User;
 import com.manoj.trip.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;

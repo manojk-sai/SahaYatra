@@ -1,8 +1,8 @@
 package com.manoj.trip.controller;
 
-import com.manoj.trip.dto.AuthRequest;
-import com.manoj.trip.dto.AuthResponse;
-import com.manoj.trip.dto.RegisterRequest;
+import com.manoj.trip.dto.request.AuthRequest;
+import com.manoj.trip.dto.response.AuthResponse;
+import com.manoj.trip.dto.request.RegisterRequest;
 import com.manoj.trip.service.AuthService;
 import com.manoj.trip.util.JwtUtil;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;

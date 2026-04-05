@@ -1,4 +1,4 @@
-package com.manoj.trip.dto;
+package com.manoj.trip.dto.request;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;

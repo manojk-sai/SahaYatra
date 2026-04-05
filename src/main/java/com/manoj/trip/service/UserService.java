@@ -1,6 +1,6 @@
 package com.manoj.trip.service;
 
-import com.manoj.trip.dto.UpdateProfileRequest;
+import com.manoj.trip.dto.request.UpdateProfileRequest;
 import com.manoj.trip.model.User;
 import com.manoj.trip.model.UserProfile;
 import com.manoj.trip.repository.UserRepository;

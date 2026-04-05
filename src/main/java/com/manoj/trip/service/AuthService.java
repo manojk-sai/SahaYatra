@@ -1,8 +1,8 @@
 package com.manoj.trip.service;
 
-import com.manoj.trip.dto.AuthRequest;
-import com.manoj.trip.dto.AuthResponse;
-import com.manoj.trip.dto.RegisterRequest;
+import com.manoj.trip.dto.request.AuthRequest;
+import com.manoj.trip.dto.response.AuthResponse;
+import com.manoj.trip.dto.request.RegisterRequest;
 import com.manoj.trip.exception.UserAlreadyExistsException;
 import com.manoj.trip.model.User;
 import com.manoj.trip.model.UserProfile;
