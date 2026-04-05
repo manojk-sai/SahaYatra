@@ -1,5 +1,6 @@
 package com.manoj.trip.controller;
 
+import com.manoj.trip.dto.UpdateProfileRequest;
 import com.manoj.trip.model.User;
 import com.manoj.trip.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -23,14 +24,17 @@ public class UserController {
     public ResponseEntity<User> authenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         User currentUser = (User) authentication.getPrincipal();
-        return ResponseEntity.ok(currentUser);
+        return ResponseEntity.ok(userService.findByUsername(currentUser.getUsername()));
     }
 
     @PostMapping("/me")
     @Operation(summary = "Update user details", description = "Returns a single user object based on the updated user object")
-    public ResponseEntity<User> updateAuthenticatedUser(@Parameter(description = "User Object with updated values") @RequestBody User user) {
+    public ResponseEntity<User> updateAuthenticatedUser(
+            @Parameter(description = "User profile object with updated values") @RequestBody UpdateProfileRequest request
+    ) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        User currentUser = (User) authentication.getPrincipal();
 
-        return ResponseEntity.ok(userService.update(user));
-
+        return ResponseEntity.ok(userService.update(currentUser.getUsername(), request));
     }
 }
