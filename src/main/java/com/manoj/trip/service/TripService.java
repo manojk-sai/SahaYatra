@@ -13,6 +13,7 @@ import com.manoj.trip.model.Stop;
 import com.manoj.trip.model.Trip;
 import com.manoj.trip.model.TripMembership;
 import com.manoj.trip.repository.TripRepository;
+import com.manoj.trip.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ import java.util.stream.Collectors;
 public class TripService {
     private final TripRepository tripRepository;
     private final MongoTemplate mongoTemplate;
+    private final UserRepository userRepository;
 
     public TripResponse createTrip(AddTripRequest request, String organizerId) {
         Trip trip = Trip.builder()
@@ -161,6 +163,9 @@ public class TripService {
     @RequiresTripRole(MemberRole.ORGANIZER)
     public String inviteMember(String tripId, String userId, String inviteeId, MemberRole role) {
         Trip trip = findTripOrThrow(tripId);
+        //Check if invitee is present in the system
+        boolean validUsername = userRepository.existsByUsername(inviteeId);
+        if (!validUsername) throw new RuntimeException("Invitee user does not exist");
 
         //Check if invitee is already a member
         boolean alreadyMember = trip.getMembers().stream()

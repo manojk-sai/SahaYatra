@@ -145,7 +145,7 @@ public class TripController {
             @AuthenticationPrincipal UserDetails userDetails) {
 
         return ResponseEntity.ok(
-                tripService.acceptInvite(token, userDetails.getUsername()));
+                tripService.acceptInvite(userDetails.getUsername(), token));
     }
 
     @PostMapping("/{tripId}/leave")
