@@ -2,6 +2,7 @@ package com.manoj.trip.model;
 
 import com.manoj.trip.enums.TripStatus;
 import com.manoj.trip.enums.TripVisibility;
+import com.manoj.trip.enums.VotingMode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -36,5 +37,6 @@ public class Trip {
     private List<Stop> stops = new ArrayList<>();
     @Builder.Default
     private List<TripMembership> members = new ArrayList<>();
-
+    @Builder.Default
+    private VotingMode votingMode = VotingMode.MAJORITY;
 }

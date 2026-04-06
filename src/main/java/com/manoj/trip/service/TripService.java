@@ -110,6 +110,7 @@ public class TripService {
         assertNotLocked(trip);
 
         Stop stop = Stop.builder()
+                .id(UUID.randomUUID().toString())
                 .name(request.getName())
                 .location(request.getLocation())
                 .category(request.getCategory())
