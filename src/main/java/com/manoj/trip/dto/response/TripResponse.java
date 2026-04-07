@@ -1,6 +1,7 @@
 package com.manoj.trip.dto.response;
 
 import com.manoj.trip.enums.*;
+import com.manoj.trip.model.Vote;
 import lombok.Builder;
 import lombok.Data;
 
@@ -21,6 +22,7 @@ public class TripResponse {
     private LocalDate startDate;
     private LocalDate endDate;
     private BigDecimal budgetCap;
+    private VotingMode votingMode;
     private List<StopResponse> stops;
     private List<MemberResponse> members;
     private LocalDateTime createdAt;
@@ -33,13 +35,14 @@ public class TripResponse {
         private String name;
         private String location;
         private StopCategory category;
-        private StopStatus status;
+        private StopStatus stopStatus;
         private int visitOrder;
         private LocalDate visitDate;
         private Integer durationHours;
         private BigDecimal estimatedCost;
         private String notes;
         private boolean mustVisit;
+        private List<Vote> votes;
     }
 
     @Data

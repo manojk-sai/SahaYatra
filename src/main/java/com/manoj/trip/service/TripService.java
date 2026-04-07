@@ -44,11 +44,11 @@ public class TripService {
 
         //Add Creator automatically as Organizer
         TripMembership organizer = TripMembership.builder()
-                                    .userId(organizerId)
-                                    .role(MemberRole.ORGANIZER)
-                                    .active(true)
-                                    .joinedAt(LocalDateTime.now())
-                                    .build();
+                .userId(organizerId)
+                .role(MemberRole.ORGANIZER)
+                .active(true)
+                .joinedAt(LocalDateTime.now())
+                .build();
         trip.getMembers().add(organizer);
 
         Trip savedTrip = tripRepository.save(trip);
@@ -62,7 +62,7 @@ public class TripService {
     }
 
     public  List<TripResponse> getMyTrips(String userId) {
-        return tripRepository.findByMembersUserId(userId)
+        return tripRepository.findByActiveMemberUserId(userId)
                 .stream()
                 .map(trip -> toResponse(trip)).collect(Collectors.toList());
     }
@@ -121,19 +121,19 @@ public class TripService {
                 .estimatedCost(request.getEstimatedCost())
                 .notes(request.getNotes())
                 .mustVisit(request.isMustVisit())
+                .proposedBy(userId)
                 .build();
 
         trip.getStops().add(stop);
         return toResponse(tripRepository.save(trip));
     }
 
-    @RequiresTripRole(MemberRole.CONTRIBUTOR)
-    public TripResponse removeStop(String tripId, String userId, String stopId) {
+    //@RequiresTripRole(MemberRole.CONTRIBUTOR)
+    public TripResponse removeStop(String tripId, String stopId, String userId) {
         Trip trip = findTripOrThrow(tripId);
         assertNotLocked(trip);
-
-        boolean removed = trip.getStops().removeIf(s -> s.getId().equals(stopId));
-        if (!removed) throw new RuntimeException("Stop not found: " + stopId);
+        boolean removed = trip.getStops().removeIf((s -> s.getId().equals(stopId) && (s.getProposedBy().equals(userId) || isOrganizer(trip, userId))));
+        if (!removed) throw new RuntimeException("Stop not found: " + stopId + " or insufficient permissions to remove");
 
         //Reorder remaining stops
         for (int i = 0; i < trip.getStops().size(); i++) {
@@ -243,13 +243,14 @@ public class TripService {
                         .name(s.getName())
                         .location(s.getLocation())
                         .category(s.getCategory())
-                        .status(s.getStatus())
+                        .stopStatus(s.getStatus())
                         .visitOrder(s.getVisitOrder())
                         .visitDate(s.getVisitDate())
                         .durationHours(s.getDurationHours())
                         .estimatedCost(s.getEstimatedCost())
                         .notes(s.getNotes())
                         .mustVisit(s.isMustVisit())
+                        .votes(s.getVotes())
                         .build())
                 .collect(Collectors.toList());
 
@@ -272,6 +273,7 @@ public class TripService {
                 .startDate(trip.getStartDate())
                 .endDate(trip.getEndDate())
                 .budgetCap(trip.getBudgetCap())
+                .votingMode(trip.getVotingMode())
                 .stops(stopResponses)
                 .members(memberResponses)
                 .build();
@@ -286,6 +288,11 @@ public class TripService {
         boolean isMember = trip.getMembers().stream()
                 .anyMatch(m -> m.getUserId().equals(userId) && m.isActive());
         if (!isMember) throw new RuntimeException("Access denied: not a trip member");
+    }
+
+    private boolean isOrganizer(Trip trip, String userId) {
+        return trip.getMembers().stream()
+                .anyMatch(m -> m.getUserId().equals(userId) && m.getRole() == MemberRole.ORGANIZER);
     }
 
     private void assertNotLocked(Trip trip) {

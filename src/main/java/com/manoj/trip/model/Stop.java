@@ -28,6 +28,7 @@ public class Stop {
     private BigDecimal estimatedCost;
     private String notes;
     private boolean mustVisit;
+    private String proposedBy;             // username of the member who proposed this stop
     @Builder.Default
     List<Vote> votes = new ArrayList<>();
 }

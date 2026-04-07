@@ -31,7 +31,7 @@ public class VoteTallyResponse {
     @Builder
     public static class VoteEntry {
         private String userId;
-        private String userName;
+        private String username;
         private VoteType voteType;
         private LocalDateTime castAt;
     }

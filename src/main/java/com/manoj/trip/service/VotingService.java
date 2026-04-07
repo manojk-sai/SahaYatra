@@ -56,7 +56,13 @@ public class VotingService {
         if (stop.isMustVisit()) {
             throw new RuntimeException("Must-visit stops cannot be voted on");
         }
-        if (stop.getStatus() == StopStatus.CONFIRMED || stop.getStatus() == StopStatus.REJECTED) {
+        // Check if the user already has an existing vote (re-vote / change vote is allowed)
+        boolean hasExistingVote = stop.getVotes() != null &&
+                stop.getVotes().stream().anyMatch(v -> v.getUserId().equals(userId));
+        // Block voting only on already-resolved stops where this user has NOT previously voted
+        // (i.e. someone new trying to vote after it's closed). Re-voting is always allowed.
+        if (!hasExistingVote &&
+                (stop.getStatus() == StopStatus.CONFIRMED || stop.getStatus() == StopStatus.REJECTED)) {
             throw new RuntimeException("Stop is already " + stop.getStatus() + " — voting is closed");
         }
 
@@ -83,7 +89,7 @@ public class VotingService {
         Trip reloaded = findTripOrThrow(tripId);
         Stop reloadedStop = findStopOrThrow(reloaded, stopId);
 
-        List<Vote> currentVotes = reloadedStop.getVotes() == null ? reloadedStop.getVotes() : new ArrayList<>();
+        List<Vote> currentVotes = reloadedStop.getVotes() != null ? reloadedStop.getVotes() : new ArrayList<>();
 
         int activeMemberCount = (int) reloaded.getMembers().stream()
                 .filter(m -> m.isActive())
@@ -102,7 +108,7 @@ public class VotingService {
         // Only update status if the strategy resolved to CONFIRMED or REJECTED
         if (resolved == StopStatus.CONFIRMED || resolved == StopStatus.REJECTED) {
             Update statusUpdate = new Update()
-                    .filterArray(Criteria.where("stop.id").is(stopId))
+                    .filterArray(Criteria.where("stop._id").is(stopId))
                     .set("stops.$[stop].status", resolved);
             mongoTemplate.updateFirst(tripQuery, statusUpdate, Trip.class);
             // Reload once more to reflect the status update in the tally
@@ -145,7 +151,7 @@ public class VotingService {
 
         Query tripQuery  = Query.query(Criteria.where("_id").is(tripId));
         Update statusUpd = new Update()
-                .filterArray(Criteria.where("stop.id").is(stopId))
+                .filterArray(Criteria.where("stop._id").is(stopId))
                 .set("stops.$[stop].status", req.getStatus());
 
         mongoTemplate.updateFirst(tripQuery, statusUpd, Trip.class);

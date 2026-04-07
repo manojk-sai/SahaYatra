@@ -20,4 +20,7 @@ public interface TripRepository extends MongoRepository<Trip, String> {
 
     @Query("{ 'members.inviteToken': ?0, 'members.active': false }")
     java.util.Optional<Trip> findByPendingInviteToken(String token);
+
+    @Query("{ 'members': { $elemMatch: { 'userId': ?0, 'active': true } } }")
+    List<Trip> findByActiveMemberUserId(String userId);
 }
