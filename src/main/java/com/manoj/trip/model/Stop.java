@@ -1,5 +1,6 @@
 package com.manoj.trip.model;
 
+import com.manoj.trip.dto.response.WeatherResponse;
 import com.manoj.trip.enums.StopCategory;
 import com.manoj.trip.enums.StopStatus;
 import lombok.AllArgsConstructor;
@@ -31,4 +32,5 @@ public class Stop {
     private String proposedBy;             // username of the member who proposed this stop
     @Builder.Default
     List<Vote> votes = new ArrayList<>();
+    private WeatherSnapshot weatherSnapshot;   // Embedded weather data for this stop
 }

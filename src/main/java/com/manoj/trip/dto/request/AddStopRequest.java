@@ -12,6 +12,7 @@ import java.time.LocalDate;
 public class AddStopRequest {
     @NotBlank(message = "Stop name is required")
     private String name;
+    @NotNull(message = "City is required")
     private String location;
     @NotNull(message = "Category is required")
     private StopCategory category;

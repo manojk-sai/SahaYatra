@@ -27,8 +27,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TripService {
     private final TripRepository tripRepository;
-    private final MongoTemplate mongoTemplate;
     private final UserRepository userRepository;
+    private final WeatherService weatherService;
 
     public TripResponse createTrip(AddTripRequest request, String organizerId) {
         Trip trip = Trip.builder()
@@ -125,6 +125,7 @@ public class TripService {
                 .build();
 
         trip.getStops().add(stop);
+        weatherService.fetchAndSaveWeatherSnapshot(stop.getLocation(), stop.getId());
         return toResponse(tripRepository.save(trip));
     }
 

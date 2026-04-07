@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless API
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html")
+                        .requestMatchers("/auth/**","/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/weather/*")
                         .permitAll() // Allow register/login, and Swagger UI without authentication
                         .requestMatchers(HttpMethod.GET,"/trips/public").permitAll() // Allow public trip endpoints without authentication
                         .anyRequest().authenticated()
