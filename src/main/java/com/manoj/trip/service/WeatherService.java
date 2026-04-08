@@ -1,7 +1,9 @@
 package com.manoj.trip.service;
 
 import com.manoj.trip.dto.response.OpenWeatherRaw;
-import com.manoj.trip.dto.response.WeatherResponse;
+import com.manoj.trip.model.Stop;
+import com.manoj.trip.model.Trip;
+import com.manoj.trip.model.WeatherSnapshot;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class WeatherService {
@@ -41,15 +44,30 @@ public class WeatherService {
         if(rawWeather == null) {
             throw new RuntimeException("Failed to fetch weather data for city: " + cityName);
         }
-        WeatherResponse weatherResponse = new WeatherResponse(
-                String.valueOf(Math.round(rawWeather.main().temp())),
-                String.valueOf(Math.round(rawWeather.main().feelsLike())),
-                String.valueOf(rawWeather.main().humidity()),
-                rawWeather.weather().get(0).description(),
-                LocalDateTime.now());
+
+        WeatherSnapshot weatherSnapshot = WeatherSnapshot.builder()
+                .fetchedAt(LocalDateTime.now())
+                .description(rawWeather.weather().get(0).description())
+                .feelsLike(String.valueOf(Math.round(rawWeather.main().feelsLike())))
+                .temp(String.valueOf(Math.round(rawWeather.main().temp())))
+                .humidity(String.valueOf(rawWeather.main().humidity()))
+                .build();
         Query query = new Query(Criteria.where("stops._id").is(stopId));
-        Update update = new Update().set("stops.$.weatherSnapshot", weatherResponse);
+        Update update = new Update().set("stops.$.weatherSnapshot", weatherSnapshot);
 
         mongoTemplate.updateFirst(query, update, "trips");
+    }
+
+    public WeatherSnapshot getWeatherSnapshotForStop(String stopId) {
+        Query query = new Query(Criteria.where("stops._id").is(stopId));
+        Trip trip = mongoTemplate.findOne(query, Trip.class, "trips");
+        if(trip == null || trip.getStops() == null) {
+            throw new RuntimeException("Trip not found for stopId: " + stopId);
+        }
+        return trip.getStops().stream()
+                .filter(stop -> stop.getId().equals(stopId))
+                .map(Stop::getWeatherSnapshot)
+                .findFirst()
+                .orElse(null);
     }
 }

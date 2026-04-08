@@ -5,7 +5,9 @@ import com.manoj.trip.dto.request.AddTripRequest;
 import com.manoj.trip.dto.request.UpdateTripRequest;
 import com.manoj.trip.dto.response.TripResponse;
 import com.manoj.trip.enums.MemberRole;
+import com.manoj.trip.model.WeatherSnapshot;
 import com.manoj.trip.service.TripService;
+import com.manoj.trip.service.WeatherService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class TripController {
     private final TripService tripService;
+    private final WeatherService weatherService;
 
     @PostMapping
     public ResponseEntity<TripResponse> createTrip(
@@ -168,6 +171,14 @@ public class TripController {
                         tripId,
                         userDetails.getUsername(),
                         body.get("newOrganizerId")));
+    }
+
+    @GetMapping("/stops/{stopId}/weather")
+    public ResponseEntity<WeatherSnapshot> getWeatherForStop(
+            @PathVariable String stopId) {
+
+        return ResponseEntity.ok(
+                weatherService.getWeatherSnapshotForStop(stopId));
     }
 
 }

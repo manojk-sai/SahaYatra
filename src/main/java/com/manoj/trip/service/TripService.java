@@ -123,7 +123,9 @@ public class TripService {
                 .mustVisit(request.isMustVisit())
                 .proposedBy(userId)
                 .build();
-
+        if(request.isMustVisit()) {
+            stop.setStatus(StopStatus.CONFIRMED);
+        }
         trip.getStops().add(stop);
         weatherService.fetchAndSaveWeatherSnapshot(stop.getLocation(), stop.getId());
         return toResponse(tripRepository.save(trip));
@@ -252,6 +254,7 @@ public class TripService {
                         .notes(s.getNotes())
                         .mustVisit(s.isMustVisit())
                         .votes(s.getVotes())
+                        .weatherSnapshot(s.getWeatherSnapshot())
                         .build())
                 .collect(Collectors.toList());
 

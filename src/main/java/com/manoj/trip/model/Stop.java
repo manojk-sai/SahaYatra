@@ -1,6 +1,5 @@
 package com.manoj.trip.model;
 
-import com.manoj.trip.dto.response.WeatherResponse;
 import com.manoj.trip.enums.StopCategory;
 import com.manoj.trip.enums.StopStatus;
 import lombok.AllArgsConstructor;

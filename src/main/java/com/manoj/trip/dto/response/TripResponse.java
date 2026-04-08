@@ -2,6 +2,7 @@ package com.manoj.trip.dto.response;
 
 import com.manoj.trip.enums.*;
 import com.manoj.trip.model.Vote;
+import com.manoj.trip.model.WeatherSnapshot;
 import lombok.Builder;
 import lombok.Data;
 
@@ -43,6 +44,7 @@ public class TripResponse {
         private String notes;
         private boolean mustVisit;
         private List<Vote> votes;
+        private WeatherSnapshot weatherSnapshot;
     }
 
     @Data
