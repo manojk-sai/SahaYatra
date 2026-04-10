@@ -14,6 +14,7 @@ import com.manoj.trip.repository.TripRepository;
 import com.manoj.trip.service.voting.VotingStrategy;
 import com.manoj.trip.service.voting.VotingStrategyFactory;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
 import org.springframework.data.mongodb.core.query.Query;
@@ -32,6 +33,7 @@ public class VotingService {
     private final TripRepository tripRepository;
     private final VotingStrategyFactory votingStrategyFactory;
     private final MongoTemplate mongoTemplate;
+    private final ApplicationEventPublisher eventPublisher;
     /**
      * Casts or replaces a vote on a stop.
      *

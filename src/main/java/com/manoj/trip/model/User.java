@@ -7,6 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import java.util.List;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class User implements UserDetails {
     @Id
     @Schema(description = "Unique identifier of the user", example = "1", accessMode = Schema.AccessMode.READ_ONLY)
@@ -24,6 +26,8 @@ public class User implements UserDetails {
     @Schema(description = "Password of the user", example = "UYzWx1&hyI", requiredMode = Schema.RequiredMode.REQUIRED)
     @NonNull
     private String password;
+    @Builder.Default
+    private List<Notification> notifications = new ArrayList<>();
     private UserProfile profile;
 
     @Override

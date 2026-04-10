@@ -9,13 +9,16 @@ import com.manoj.trip.enums.MemberRole;
 import com.manoj.trip.enums.StopStatus;
 import com.manoj.trip.enums.TripStatus;
 import com.manoj.trip.enums.TripVisibility;
+import com.manoj.trip.event.MemberJoinedEvent;
+import com.manoj.trip.event.StopProposedEvent;
+import com.manoj.trip.event.TripStatusChangedEvent;
 import com.manoj.trip.model.Stop;
 import com.manoj.trip.model.Trip;
 import com.manoj.trip.model.TripMembership;
 import com.manoj.trip.repository.TripRepository;
 import com.manoj.trip.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -29,6 +32,7 @@ public class TripService {
     private final TripRepository tripRepository;
     private final UserRepository userRepository;
     private final WeatherService weatherService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public TripResponse createTrip(AddTripRequest request, String organizerId) {
         Trip trip = Trip.builder()
@@ -94,7 +98,9 @@ public class TripService {
         TripStatus next = nextStatus(trip.getStatus());
         trip.setStatus(next);
         if (next == TripStatus.CONFIRMED) trip.setLocked(true);
-        return toResponse(tripRepository.save(trip));
+        TripResponse response = toResponse(tripRepository.save(trip));
+        eventPublisher.publishEvent(new TripStatusChangedEvent(this, tripId, trip.getTitle(), next));
+        return response;
     }
 
     @RequiresTripRole(MemberRole.ORGANIZER)
@@ -128,7 +134,9 @@ public class TripService {
         }
         trip.getStops().add(stop);
         weatherService.fetchAndSaveWeatherSnapshot(stop.getLocation(), stop.getId());
-        return toResponse(tripRepository.save(trip));
+        TripResponse tripResponse = toResponse(tripRepository.save(trip));
+        eventPublisher.publishEvent(new StopProposedEvent(this, tripId, trip.getTitle(), stop.getName(), userId));
+        return tripResponse;
     }
 
     //@RequiresTripRole(MemberRole.CONTRIBUTOR)
@@ -205,7 +213,11 @@ public class TripService {
                 .findFirst()
                 .ifPresent(m -> {m.setInviteToken(null); m.setJoinedAt(LocalDateTime.now());}); // Clear token after acceptance
 
-        return toResponse(tripRepository.save(trip));
+        TripResponse response = toResponse(tripRepository.save(trip));
+        trip.getMembers().stream().filter(m -> m.isActive() && m.getRole() == MemberRole.ORGANIZER)
+                .findFirst().ifPresent(org -> eventPublisher.publishEvent(
+                        new MemberJoinedEvent(this, trip.getId(), trip.getTitle(), userId, org.getUserId())));
+        return response;
     }
 
     public void leaveTrip(String tripId, String userId) {
