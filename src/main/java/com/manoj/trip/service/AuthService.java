@@ -26,7 +26,7 @@ public class AuthService {
     private final UserDetailsService userDetailsService;
 
 
-    public String signup(RegisterRequest input) {
+    public AuthResponse signup(RegisterRequest input) {
         if (userRepository.existsByUsername(input.getUsername())) {
             throw new UserAlreadyExistsException("User with this email already exists.");
         }
@@ -44,7 +44,11 @@ public class AuthService {
         user.setProfile(profile);
         userRepository.save(user);
 
-        return "User registered successfully";
+        final UserDetails userDetails = userDetailsService.loadUserByUsername(input.getUsername());
+        AuthResponse authResponse = new AuthResponse();
+        authResponse.setToken(jwtUtil.generateToken(userDetails));
+        authResponse.setExpiresBy(jwtUtil.getJwtExpiration());
+        return authResponse;
     }
 
     public AuthResponse authenticate(AuthRequest input) {

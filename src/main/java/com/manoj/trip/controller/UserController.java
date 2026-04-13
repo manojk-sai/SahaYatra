@@ -27,7 +27,7 @@ public class UserController {
         return ResponseEntity.ok(userService.findByUsername(currentUser.getUsername()));
     }
 
-    @PostMapping("/me")
+    @PutMapping("/me")
     @Operation(summary = "Update user details", description = "Returns a single user object based on the updated user object")
     public ResponseEntity<User> updateAuthenticatedUser(
             @Parameter(description = "User profile object with updated values") @RequestBody UpdateProfileRequest request

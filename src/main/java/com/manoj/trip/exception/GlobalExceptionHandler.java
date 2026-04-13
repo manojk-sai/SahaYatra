@@ -1,6 +1,7 @@
 package com.manoj.trip.exception;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
@@ -11,6 +12,8 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -19,7 +22,7 @@ import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    record ErrorResponse(int status, String message, LocalDateTime timestamp) {}
+    record ErrorResponse(int status, String message, Map<String, String> errors, LocalDateTime timestamp) {}
 
     @ExceptionHandler(BadCredentialsException.class)
     public ProblemDetail handleBadCredentialsException(BadCredentialsException e) {
@@ -35,15 +38,13 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
     @ExceptionHandler(InvalidInputException.class)
-    public ResponseEntity<String> handleInvalidInput(InvalidInputException ex) {
-        // Returns 400 Bad Request
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<ErrorResponse> handleInvalidInput(InvalidInputException ex) {
+        return build(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<String> handleUserConflict(UserAlreadyExistsException ex) {
-        // Returns 409 Conflict
-        return new ResponseEntity<>(ex.getMessage(), HttpStatus.CONFLICT);
+    public ResponseEntity<ErrorResponse> handleUserConflict(UserAlreadyExistsException ex) {
+        return build(HttpStatus.CONFLICT, ex.getMessage());
     }
     @ExceptionHandler(AccessDeniedException.class)
     public ProblemDetail handleAccessDeniedException(AccessDeniedException e) {
@@ -60,11 +61,9 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(Exception.class)
-    public ProblemDetail handleGenericException(Exception e) {
+    public ResponseEntity<ErrorResponse> handleGenericException(Exception e) {
         e.printStackTrace();
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(500), e.getMessage());
-        problemDetail.setProperty("description", "Unknown internal server error.");
-        return problemDetail;
+        return build(HttpStatus.INTERNAL_SERVER_ERROR, "Unknown internal server error.");
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -93,8 +92,31 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(body);
     }
 
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+        Map<String, String> errors = ex.getConstraintViolations().stream()
+                .collect(Collectors.toMap(
+                        violation -> violation.getPropertyPath().toString(),
+                        violation -> violation.getMessage(),
+                        (a, b) -> a
+                ));
+        return build(HttpStatus.BAD_REQUEST, "Validation failed", errors);
+    }
+
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class, IllegalArgumentException.class})
+    public ResponseEntity<ErrorResponse> handleBadArguments(Exception ex) {
+        return build(HttpStatus.BAD_REQUEST, "Invalid request parameters");
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResourceFound(NoResourceFoundException ex) {
+        return build(HttpStatus.NOT_FOUND, "Resource not found");
+    }
     private ResponseEntity<ErrorResponse> build(HttpStatus status, String message) {
+        return build(status, message, Map.of());
+    }
+    private ResponseEntity<ErrorResponse> build(HttpStatus status, String message, Map<String, String> errors) {
         return ResponseEntity.status(status)
-                .body(new ErrorResponse(status.value(), message, LocalDateTime.now()));
+                .body(new ErrorResponse(status.value(), message, errors, LocalDateTime.now()));
     }
 }
